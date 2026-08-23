@@ -1,11 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Mercado Livre OAuth</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Livre - Autorização</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 80px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .success {
+            color: #16803c;
+        }
+
+        .error {
+            color: #c62828;
+        }
+
+        code {
+            word-break: break-all;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>OAuth Callback</h1>
-    <p>Configuração inicial.</p>
+
+    <h1 id="title">Autorizando...</h1>
+    <p id="message">Processando retorno do Mercado Livre.</p>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+
+        const code = params.get("code");
+        const state = params.get("state");
+        const error = params.get("error");
+        const errorDescription = params.get("error_description");
+
+        const title = document.getElementById("title");
+        const message = document.getElementById("message");
+
+        if (error) {
+
+            title.textContent = "Autorização não concluída";
+            title.className = "error";
+
+            message.textContent =
+                errorDescription || error;
+
+        } else if (code) {
+
+            title.textContent = "Autorização recebida";
+            title.className = "success";
+
+            message.innerHTML =
+                "O código de autorização foi recebido.<br>" +
+                "Você pode retornar ao Pinterest Automation.";
+
+            /*
+             * IMPORTANTE:
+             * O code NÃO é enviado para nenhum servidor externo.
+             * O Streamlit deverá ser responsável por concluir o OAuth.
+             */
+
+            const localUrl = new URL(
+                "http://localhost:8501/"
+            );
+
+            localUrl.searchParams.set("code", code);
+
+            if (state) {
+                localUrl.searchParams.set("state", state);
+            }
+
+            /*
+             * Redireciona o navegador para o aplicativo local.
+             */
+            setTimeout(() => {
+                window.location.href = localUrl.toString();
+            }, 1000);
+
+        } else {
+
+            title.textContent = "Callback ativo";
+            message.textContent =
+                "Esta página está pronta para receber a autorização do Mercado Livre.";
+        }
+    </script>
+
 </body>
 </html>
